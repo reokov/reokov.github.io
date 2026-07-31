@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="yandex" content="noindex, nofollow">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ксения & Леонид — 12 сентября 2026</title>
@@ -354,86 +357,98 @@
   }
   
   /* Timeline */
-  .timeline {
-    position: relative;
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: var(--silver-light);
-    transform: translateX(-50%);
-  }
-  
-  .timeline-item {
-    position: relative;
-    padding: 20px 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    align-items: center;
-  }
-  
-  .timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 11px;
-    height: 11px;
-    background: var(--white);
-    border: 2px solid var(--navy);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 2;
-  }
-  
-  .timeline-time {
-    text-align: right;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 32px;
-    font-weight: 400;
-    color: var(--navy);
-    padding-right: 40px;
-  }
-  
-  .timeline-content {
-    padding-left: 40px;
-  }
-  
-  .timeline-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 22px;
-    color: var(--navy);
-    margin-bottom: 6px;
-    font-weight: 500;
-  }
-  
-  .timeline-desc {
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 300;
-  }
-  
-  .timeline-item:nth-child(even) .timeline-time {
-    grid-column: 2;
-    text-align: left;
-    padding-right: 0;
-    padding-left: 40px;
-  }
-  
-  .timeline-item:nth-child(even) .timeline-content {
-    grid-column: 1;
-    text-align: right;
-    padding-left: 0;
-    padding-right: 40px;
-  }
+/* Timeline */
+.timeline {
+  position: relative;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--silver-light);
+  transform: translateX(-50%);
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 60px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Точка абсолютно позиционирована относительно timeline */
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  background: var(--white);
+  border: 2px solid var(--navy);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.timeline-time {
+  flex: 1;
+  text-align: right;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--navy);
+  padding-right: 50px;
+  line-height: 1;
+}
+
+.timeline-content {
+  flex: 1;
+  padding-left: 50px;
+}
+
+.timeline-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  color: var(--navy);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.timeline-desc {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 300;
+}
+
+/* Чётные элементы — меняем стороны */
+.timeline-item:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.timeline-item:nth-child(even) .timeline-time {
+  text-align: left;
+  padding-right: 0;
+  padding-left: 50px;
+}
+
+.timeline-item:nth-child(even) .timeline-content {
+  padding-left: 0;
+  padding-right: 50px;
+  text-align: right;
+}
   
   /* Venue */
   .venue {
@@ -978,7 +993,7 @@
         <div class="timeline-time">23:00</div>
         <div class="timeline-content">
           <div class="timeline-title">Окончание праздника</div>
-          <div class="timeline-desc">..........</div>
+          <div class="timeline-desc"></div>
         </div>
       </div>
     </div>
@@ -1137,7 +1152,17 @@
       
       
       <div class="rsvp-deadline">
-     телефон для связи:<a href="tel:+79504945242" style="color: var(--white); text-decoration: none; border-bottom: 1px solid var(--silver);">+7 (950) 494-52-42</a>
+     телефон для связи:<!-- Телефон защищён: номер собирается только в браузере по клику -->
+    <a href="#" 
+       id="phoneLink" 
+       data-p1="950" 
+       data-p2="494" 
+       data-p3="52" 
+       data-p4="42" 
+       style="color: var(--white); text-decoration: none; border-bottom: 1px solid var(--silver); cursor: pointer;"
+       aria-label="Показать номер телефона">
+       <span class="phone-text">+7 (•••) •••-••-••</span>
+    </a>
       </div>
     </form>
     
@@ -1241,7 +1266,37 @@
     document.getElementById('successMessage').classList.add('show');
   });
 </script>
-
+<script>
+  // Защита номера телефона от парсинга ботами
+  (function() {
+    const phoneLink = document.getElementById('phoneLink');
+    if (!phoneLink) return;
+    
+    let revealed = false;
+    
+    function buildPhone() {
+      const p1 = phoneLink.dataset.p1;
+      const p2 = phoneLink.dataset.p2;
+      const p3 = phoneLink.dataset.p3;
+      const p4 = phoneLink.dataset.p4;
+      return '+7 (' + p1 + ') ' + p2 + '-' + p3 + '-' + p4;
+    }
+    
+    phoneLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (!revealed) {
+        const fullNumber = '+7' + phoneLink.dataset.p1 + phoneLink.dataset.p2 + phoneLink.dataset.p3 + phoneLink.dataset.p4;
+        const display = buildPhone();
+        phoneLink.querySelector('.phone-text').textContent = display;
+        phoneLink.href = 'tel:' + fullNumber;
+        revealed = true;
+      }
+    });
+    
+    // Альтернатива: показ по наведению (раскомментируйте если нужно)
+    phoneLink.addEventListener('mouseenter', () => phoneLink.click());
+  })();
+</script>
 
 
 </body></html>
