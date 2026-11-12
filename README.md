@@ -5,7 +5,6 @@
 - HTML5 / CSS3 / Vanilla JS
 - Fontsource (Inter, JetBrains Mono)
 - Font Awesome 6
-- JSZip (для генерации архива)
 
 ## 📄 Лицензия
 
