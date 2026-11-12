@@ -1,6 +1,6 @@
 Простая страница-визитка для GitHub Pages.
 
-## 🛠 Технологии
+## Технологии
 
 - HTML5 / CSS3 / Vanilla JS
 - Fontsource (Inter, JetBrains Mono)
