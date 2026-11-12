@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atlassian Apps Developer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.0/index.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a15;
+    --accent-1: #7c3aed;
+    --accent-2: #06b6d4;
+    --accent-3: #ec4899;
+    --text: #e5e7eb;
+    --text-dim: #9ca3af;
+    --glass: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  canvas#bg { position: fixed; inset: 0; z-index: 0; }
+
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.35;
+    z-index: 1;
+    pointer-events: none;
+    animation: float 18s ease-in-out infinite;
+  }
+  .blob.b1 { width: 420px; height: 420px; background: var(--accent-1); top: -120px; left: -100px; }
+  .blob.b2 { width: 380px; height: 380px; background: var(--accent-2); bottom: -120px; right: -80px; animation-delay: -6s; }
+  .blob.b3 { width: 300px; height: 300px; background: var(--accent-3); top: 40%; left: 60%; animation-delay: -12s; opacity: 0.2; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(40px, -30px) scale(1.08); }
+    66% { transform: translate(-30px, 40px) scale(0.95); }
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .card {
+    position: relative;
+    width: min(920px, 100%);
+    padding: 40px 48px;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 40px;
+    align-items: center;
+    transition: transform 0.2s ease-out;
+    transform-style: preserve-3d;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 24px;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent-1), transparent 40%, transparent 60%, var(--accent-2));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  .avatar-wrap { position: relative; width: 180px; height: 180px; flex-shrink: 0; }
+
+  .avatar-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-1));
+    animation: spin 8s linear infinite;
+    filter: blur(2px);
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .avatar {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a1a2e, #0f0f1e);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .avatar svg { width: 100%; height: 100%; }
+
+  .status-dot {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #10b981;
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 12px #10b981;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 12px #10b981; }
+    50% { box-shadow: 0 0 20px #10b981, 0 0 30px #10b981; }
+  }
+
+  .content { min-width: 0; }
+
+  .hello {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent-2);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.1s forwards;
+  }
+
+  .name {
+    font-size: clamp(32px, 4.5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, #fff 40%, var(--accent-2) 70%, var(--accent-1) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.25s forwards;
+  }
+
+  .role {
+    font-size: 18px;
+    color: var(--text-dim);
+    margin-bottom: 18px;
+    min-height: 26px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.4s forwards;
+  }
+
+  .role .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--accent-2);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .bio {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 22px;
+    max-width: 520px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.55s forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.7s forwards;
+  }
+
+  .skill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 6px 12px;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    color: #c4b5fd;
+    border-radius: 20px;
+    transition: all 0.25s ease;
+    cursor: default;
+  }
+
+  .skill:hover {
+    background: rgba(124, 58, 237, 0.25);
+    border-color: rgba(124, 58, 237, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  }
+
+  .skill.cyan { background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.25); color: #67e8f9; }
+  .skill.cyan:hover { background: rgba(6, 182, 212, 0.25); border-color: rgba(6, 182, 212, 0.5); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
+  .skill.pink { background: rgba(236, 72, 153, 0.1); border-color: rgba(236, 72, 153, 0.25); color: #f9a8d4; }
+  .skill.pink:hover { background: rgba(236, 72, 153, 0.25); border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); }
+
+  .socials {
+    display: flex;
+    gap: 12px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.85s forwards;
+  }
+
+  .social {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 17px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .social::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: -1;
+  }
+
+  .social:hover {
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+  }
+
+  .social:hover::before { opacity: 1; }
+
+  .social.zip-btn {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(6, 182, 212, 0.15));
+    border-color: rgba(124, 58, 237, 0.3);
+    color: #c4b5fd;
+  }
+
+  .social.zip-btn:hover {
+    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.4);
+  }
+
+  .corner {
+    position: fixed;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    opacity: 0.5;
+    z-index: 10;
+    letter-spacing: 1px;
+  }
+  .corner.tl { top: 20px; left: 24px; }
+  .corner.tr { top: 20px; right: 24px; }
+  .corner.bl { bottom: 20px; left: 24px; }
+  .corner.br { bottom: 20px; right: 24px; }
+
+  .corner .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
+    margin-right: 6px;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @media (max-width: 720px) {
+    .card {
+      grid-template-columns: 1fr;
+      padding: 32px 24px;
+      gap: 24px;
+      text-align: center;
+    }
+    .avatar-wrap { margin: 0 auto; width: 140px; height: 140px; }
+    .skills, .socials { justify-content: center; }
+    .bio { margin-left: auto; margin-right: auto; }
+    .corner { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="blob b1"></div>
+<div class="blob b2"></div>
+<div class="blob b3"></div>
+
+<div class="corner tl"><span class="dot"></span>ONLINE</div>
+<div class="corner tr">v1.0.0</div>
+<div class="corner bl">© 2026</div>
+<div class="corner br" id="clock">--:--:--</div>
+
+<div class="wrap">
+  <div class="card" id="card">
+
+    <div class="avatar-wrap">
+      <div class="avatar-ring"></div>
+      <div class="avatar">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#7c3aed"/>
+              <stop offset="50%" stop-color="#06b6d4"/>
+              <stop offset="100%" stop-color="#ec4899"/>
+            </linearGradient>
+            <radialGradient id="g2" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#1e1b4b"/>
+              <stop offset="100%" stop-color="#0a0a15"/>
+            </radialGradient>
+          </defs>
+          <rect width="200" height="200" fill="url(#g2)"/>
+          <text x="30" y="50" font-family="JetBrains Mono, monospace" font-size="24" fill="url(#g1)" opacity="0.3">&lt;/&gt;</text>
+          <text x="130" y="170" font-family="JetBrains Mono, monospace" font-size="20" fill="url(#g1)" opacity="0.3">{ }</text>
+          <circle cx="100" cy="78" r="28" fill="url(#g1)" opacity="0.9"/>
+          <path d="M 50 160 Q 50 115 100 115 Q 150 115 150 160 L 150 200 L 50 200 Z" fill="url(#g1)" opacity="0.85"/>
+          <circle cx="100" cy="78" r="28" fill="none" stroke="#fff" stroke-width="0.5" opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="status-dot" title="Available for hire"></div>
+    </div>
+
+    <div class="content">
+      <div class="hello">&gt; hello_world</div>
+      <h1 class="name">Leonid (Reokov)</h1>
+      <div class="role"><span id="typed"></span><span class="cursor"></span></div>
+      <p class="bio">
+        Разрабатываю плагины и интеграции для экосистемы Atlassian.
+        Пишу чистый, надёжный код на Java и Groovy.
+      </p>
+
+      <div class="skills">
+        <span class="skill">Atlassian</span>
+        <span class="skill">Java</span>
+        <span class="skill cyan">Groovy</span>
+        <span class="skill pink">Python</span>
+        <span class="skill">PostgreSQL</span>
+      </div>
+
+      <div class="socials">
+        <a href="https://github.com/reokov" target="_blank" class="social" title="GitHub"><i class="fa-brands fa-github"></i></a>
+        <a href="https://t.me/reokov" target="_blank" class="social" title="Telegram"><i class="fa-brands fa-telegram"></i></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  /* ====== Typewriter ====== */
+  const roles = [
+    'Atlassian Apps Developer',
+    'Backend Engineer',
+    'Plugin & Integration Builder',
+    'Problem Solver'
+  ];
+  const typedEl = document.getElementById('typed');
+  let rIdx = 0, cIdx = 0, deleting = false;
+
+  function type() {
+    const current = roles[rIdx];
+    if (!deleting) {
+      typedEl.textContent = current.slice(0, ++cIdx);
+      if (cIdx === current.length) {
+        deleting = true;
+        setTimeout(type, 1800);
+        return;
+      }
+    } else {
+      typedEl.textContent = current.slice(0, --cIdx);
+      if (cIdx === 0) {
+        deleting = false;
+        rIdx = (rIdx + 1) % roles.length;
+      }
+    }
+    setTimeout(type, deleting ? 40 : 85);
+  }
+  type();
+
+  /* ====== Clock ====== */
+  const clockEl = document.getElementById('clock');
+  function tick() {
+    const d = new Date();
+    clockEl.textContent = d.toLocaleTimeString('ru-RU');
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  /* ====== 3D tilt on card ====== */
+  const card = document.getElementById('card');
+  const wrap = document.querySelector('.wrap');
+  wrap.addEventListener('mousemove', (e) => {
+    const r = card.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dx = (e.clientX - cx) / r.width;
+    const dy = (e.clientY - cy) / r.height;
+    card.style.transform = `perspective(1000px) rotateY(${dx * 4}deg) rotateX(${-dy * 4}deg)`;
+  });
+  wrap.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(1000px) rotateY(0) rotateX(0)';
+  });
+
+  /* ====== Particle network background ====== */
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function initParticles() {
+    const count = Math.min(90, Math.floor((W * H) / 18000));
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 1.6 + 0.4
+    }));
+  }
+  initParticles();
+  window.addEventListener('resize', initParticles);
+
+  const mouse = { x: -9999, y: -9999 };
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  window.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(167, 139, 250, 0.6)';
+      ctx.fill();
+    }
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 130) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(124, 58, 237, ${(1 - dist / 130) * 0.25})`;
+          ctx.lineWidth = 0.6;
+          ctx.stroke();
+        }
+      }
+      const dx = particles[i].x - mouse.x;
+      const dy = particles[i].y - mouse.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 160) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.strokeStyle = `rgba(6, 182, 212, ${(1 - dist / 160) * 0.5})`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+</script>
+
+</body>
+</html>
